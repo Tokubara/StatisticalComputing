@@ -1,8 +1,6 @@
 library(fpCompare)
 
-A=cbind(c(1,2,1),c(1,0,1))
-old_A=A
-
+Givens<-function(A) {
   m = nrow(A)
   n = ncol(A)
   if (n > m) {
@@ -20,9 +18,16 @@ old_A=A
       .s=xj/.t
       G=cbind(c(.c,-.s),c(.s,.c))
       # 用这个Q去作用
-      A[c(i, j), (i + 1):n] = G%*% A[c(i, j), (i + 1):n]
+      A[c(i, j), (i):n] = G%*% A[c(i, j), (i):n] # fix:一开始,没有对A[,i]作用, 这会让A[,i]得不到改变的
       Q[, c(i, j)] = Q[, c(i, j)]%*%t(G)
     }
-    A[(i+1):m,i]=0
   }
-  # return(list(Q = Q, R = A))
+  return(list(Q = Q, R = A))
+}
+
+A = randi(20,10,8)
+res=Givens(A)
+Q=res$Q
+R=res$R
+(A)%==%(Q%*%R)
+
