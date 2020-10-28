@@ -71,38 +71,49 @@ CGS <- function(A) {
 }
 
 A = matrix(c(1,4,4,2,4,6,2,2,4),nrow=3)
-n = nrow(A)
-N_C = 1:n # 为了表明这是个常量, 而且是向量
-pivoting=TRUE
-
-p=integer(n) # 虽然只需要n-1
-# 为debug好看, 先保证A没有修改
-L=diag(n)
-U=A
-rownames(U)=1:3
-if(n!=ncol(A)) {
-  stop("A is not n*n")
-}
-for(i in 1:(n-1)) {
-  # i=2 # 调试
-  # 因为一共要进行n-1次
-  if(pivoting) {
-    p[i] = as.integer(names(which.max(abs(.f(p,i))))) # 找出第i列绝对值最大者 # fix:p[i]=which.max(abs(A[,i])) A没有改变, 应该是U # ifelse(all(p == 0), U[, i], U[-p, i])不行, 因为它会去掉names
-  } else {
-    p[i]=i
+LU <- function(A, pivoting = TRUE) {
+  n = nrow(A)
+  if (n != ncol(A)) {
+    stop("A is not n*n")
   }
-  qi = U[p[i], (i + 1):n] # perf:qi = A[p[i], i:n]:因为对角元不参与运算 # fix:这里应该是U而不是A
-  aii=qi[1] # 就是这个对角元
-  for (j in N_C[-p]) {
-    qij=U[j,i]/aii
-    U[j, (i + 1):n] = U[j, (i + 1):n] - qij * qi
-    L[j,i]=qij
+  N_C = 1:n # 为了表明这是个常量, 而且是向量
+  p = integer(n)
+  # 这里A没有修改
+  L = diag(n)
+  U = A
+  rownames(U) = 1:n
+  for (i in 1:(n - 1)) {
+    # 因为一共要进行n-1次
+    if (pivoting) {
+      p[i] = as.integer(names(which.max(abs(.f(p, i))))) # 找出第i列绝对值最大者 # fix:p[i]=which.max(abs(A[,i])) A没有改变, 应该是U # ifelse(all(p == 0), U[, i], U[-p, i])不行, 因为它会去掉names
+    } else {
+      p[i] = i
+    }
+    aii = U[p[i],i] # 就是这个对角元
+    if (aii == 0) {
+      stop("can't be decomposed")
+    }
+    qi = U[p[i], (i + 1):n] # perf:qi = A[p[i], i:n]:因为对角元不参与运算 # fix:这里应该是U而不是A
+    for (j in N_C[-p]) {
+      qij = U[j, i] / aii
+      U[j, (i + 1):n] = U[j, (i + 1):n] - qij * qi
+      L[j, i] = qij
+    }
   }
+  browser()
+  p[n] = N_C[-p] # 补全p, 以便得到L,U,P
+  # 得到U
+  U = U[p,]
+  U[lower.tri(U)] <- 0
+  # 得到L
+  L = L[p,]
+  diag(L) <- 1
+  L[upper.tri(L)] <- 0
+  # 得到P
+  P = matrix(0, n, n)
+  P[cbind(1:n, p)] = 1
+  return(list(L = L, U = U, P = P))
 }
-
-
-
-
 
 # test函数似乎可以继续用
 test <- function(mode = c("c", "m")) {
