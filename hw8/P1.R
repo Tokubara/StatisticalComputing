@@ -8,8 +8,11 @@ grad_f <- function(x) {
 x_=c(2,3)
 tol1=1e-4
 tol2=1e-6
-iter=0
+iter=1
 MAX_ITER=5000
+
+x1_plot=numeric(MAX_ITER)
+x2_plot = numeric(MAX_ITER)
 
 while(T) {
   if(iter>MAX_ITER) {
@@ -19,6 +22,8 @@ while(T) {
   step=0.01  # 这里需要改成switch
   diff = step * grad_
   x_=x_-diff
+  x1_plot[iter]=x_[1]
+  x2_plot[iter]=x_[2]
   if (sqrt(sum(diff ^ 2)) < tol1 * (sqrt(sum(x_ ^ 2)) + tol2)) { # 感觉判停准则不是很理想, 因为step就限制了不可能很大
     print("x=")
     print(x_)
@@ -28,3 +33,4 @@ while(T) {
   }
   iter=iter+1
 }
+plot(x1_plot,x2_plot)
