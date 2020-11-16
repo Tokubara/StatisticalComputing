@@ -26,6 +26,7 @@ backtracking_step <- function(x, a=0.3,b=0.6) {
   f.x = f(x) # x在这个过程中是不更新的, grad也不更新
   max_iter=300
   iter=0
+  const = a * sum(grad_ ^ 2)
   while(T) {
     iter=iter+1
     if(iter>max_iter) {
@@ -33,7 +34,7 @@ backtracking_step <- function(x, a=0.3,b=0.6) {
     }
     x_new = x - grad_ * step
     f.x_new = f(x_new)
-    if(f.x-f.x_new<a*step*sum(grad_^2)) {
+    if(f.x-f.x_new>=const*step) {
       return(step)
     } else { # 虽然else多余
       step=step*b
@@ -41,7 +42,6 @@ backtracking_step <- function(x, a=0.3,b=0.6) {
   }
 }
 # method=""
-
 while(T) {
   if(iter>MAX_ITER) {
     stop("not found solution")
