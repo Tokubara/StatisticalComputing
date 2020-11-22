@@ -1,7 +1,7 @@
-grad <-function(x) {
+grad <-function(x) { # 已测试
   return(c(  2*(x[1]-1)+400*x[1]*(x[1]^2-x[2]),200*(x[2]-x[1]^2)  ))
 }
-Hesse <- function(x) {
+Hesse <- function(x) { # 已测试
   return(matrix(c(2+400*(3*x[1]^2-x[2]),-400*x[1],-400*x[1],200),nrow=2))
 }
 .rk<-function(x) {
@@ -13,13 +13,21 @@ xk=c(2,3)
 rk = .rk(xk)
 dk=rk
 n=2
-for(k in range(10*n)) {
-  A=Hesse(xk)
-  denom = (dk %*% A %*% dk)
-  ak = dot(dk, rk) / denom
-  xk=x0+ak*dk
-  rk=.rk(xk)
-  bk = (dk %*% A %*% rk) / denom
-  dk=rk-bk*dk
+while(sum(dk^2)>1e-6) {
+  for (k in range(n)) {
+    A = Hesse(xk)
+    denom = as.vector((dk %*% A %*% dk))
+    ak = dot(dk, rk) / denom
+    xk = x0 + ak * dk
+    if(k<n) {
+      rk = .rk(xk)
+      bk = as.vector((dk %*% A %*% rk)) / denom
+      dk = rk - bk * dk
+    }
+  }
+  dk=.rk(xk)
 }
 
+.x=c(2,3)
+grad(.x)
+Hesse(.x)
