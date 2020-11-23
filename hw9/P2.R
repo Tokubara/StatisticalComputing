@@ -40,3 +40,18 @@ while(sum(dk^2)>tol) {
   # cat(xk, sum(dk ^ 2),"\n")
 }
 
+xk = c(2, 3)
+iter = 0
+dx=1
+while (sum(dx^2) > tol) {
+  if (iter > maxit) {
+    cat("reach maxit, exit\n")
+    break
+  }
+  H=Hesse(xk)
+  g=grad(xk)
+  dx = solve(H) %*% g
+  xk=xk-dx # 如果这里太慢了, 可以考虑直接代入公式.
+  iter=iter+1
+}
+
