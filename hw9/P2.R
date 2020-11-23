@@ -41,7 +41,6 @@ conjugate_gradient <- function(xk, f, grad, Hesse, maxit = 100000, tol = 1e-6) {
   }
   return(list(x = xk, f.x = f(xk), iter = iter))
 }
-conjugate_gradient(c(2,3),f,grad,Hesse)
 
 Newton <- function(xk,f,grad, Hesse, maxit = 50000) {
   iter = 0
@@ -59,9 +58,6 @@ Newton <- function(xk,f,grad, Hesse, maxit = 50000) {
   }
   return(list(x = xk, f.x = f(xk), iter = iter))
 }
-
-xk = c(2, 3)
-Newton(c(2,3),f,grad,Hesse)
 
 gradient_descent<-function(xk,f,grad) {
   iter = 0
@@ -106,7 +102,9 @@ gradient_descent<-function(xk,f,grad) {
   return(list(x=xk,f.x=f(xk),iter=iter))
 }
 
-gradient_descent(c(2,3),f,grad)
+x0=runif(2,-5,5)
+gradient_descent(x0,f,grad)
+conjugate_gradient(x0, f, grad, Hesse)
+Newton(x0, f, grad, Hesse)
 
-
-
+(result <- optim(x0, f, grad, method = "CG", control = c(maxit = 100000, reltol = 1e-6, type = 2)))
