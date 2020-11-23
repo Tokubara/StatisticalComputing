@@ -55,3 +55,46 @@ while (sum(dx^2) > tol) {
   iter=iter+1
 }
 
+printf <- function(...) cat(sprintf(...))
+
+xk = c(2, 3)
+iter = 0
+
+backtracking_step <- function(x, a = 0.3, b = 0.6) {
+  step = 1
+  grad_ = grad(x)
+  f.x = f(x) # x在这个过程中是不更新的, grad也不更新
+  max_iter = 300
+  iter = 0
+  const = a * sum(grad_ ^ 2)
+  while (T) {
+    iter = iter + 1
+    if (iter > max_iter) {
+      # cat("not found step\n")
+      return(-1)
+    }
+    x_new = x - grad_ * step
+    f.x_new = f(x_new)
+    if (f.x - f.x_new >= const * step) {
+      return(step)
+    } else {
+      # 虽然else多余
+      step = step * b
+    }
+  }
+}
+
+while (T) {
+  if (iter > maxit) {
+    cat("reach maxit, exit\n")
+    break
+  }
+  grad_ = grad(xk)
+  step = backtracking_step(xk)
+  if (step < 0) { # 修改了判停准则
+    break
+  }
+  diff = step * grad_
+  xk = xk - diff
+  iter = iter + 1
+}
