@@ -1,32 +1,31 @@
-library(dplyr)
 library(pracma)
 # 设定真实参数
-n=2000
-mu=c(-20,0,30)
-sigma2=c(6,1,12)
-sigma=sqrt(sigma2)
-p=c(0.2,0.3,0.5)
+len_rv = 2000
+mu.preset = c(-20, 0, 30)
+sigma2.preset = c(6, 1, 12)
+sigma.preset = sqrt(sigma2.preset)
+p.preset = c(0.2, 0.3, 0.5)
 
 # 生成数据点
 set.seed(17)
-ry=sample(x=1:3,size=n,prob=p,replace = TRUE)
-rx=rnorm(n,mu[ry],sigma[ry])
+rv.latent = sample(x = 1:3, size = len_rv, prob = p.preset, replace = TRUE)
+rv.norm = rnorm(len_rv, mu.preset[rv.latent], sigma.preset[rv.latent])
 
 # 设定初始参数
-mu_=c(-10,0,10)
-sigma2_=c(6,3,9)
-sigma_=sqrt(sigma2_)
-p_=c(1,1,1)/3
+mu.t = c(-10, 0, 10)
+sigma2.t = c(6, 3, 9)
+sigma.t = sqrt(sigma2.t)
+p.t = c(1, 1, 1) / 3
 
 # 进行迭代
-for(k in 1:500) {
-  am = cbind(dnorm(rx, mu_[1], sigma_[1]) * p_[1], dnorm(rx, mu_[2], sigma_[2]) * p_[2], dnorm(rx, mu_[3], sigma_[3]) * p_[3]) # m表示是个矩阵
-  am=t(apply(am,MARGIN=1,function(x)x/sum(x)))
-  am_sum = colSums(am)
-  mu_=apply(am,MARGIN=2,function(x)dot(x,rx)/sum(x))
-  for(j in 1:3) {
-    sigma2_[j] = dot(am[, j], (rx - mu_[j]) ^ 2) / am_sum[j]
+for (k_iter in 1:500) {
+  lij.matrix = cbind(dnorm(rv.norm, mu.t[1], sigma.t[1]) * p.t[1], dnorm(rv.norm, mu.t[2], sigma.t[2]) * p.t[2], dnorm(rv.norm, mu.t[3], sigma.t[3]) * p.t[3]) # m表示是个矩阵
+  lij.matrix = t(apply(lij.matrix, MARGIN = 1, function(x) x / sum(x)))
+  lij.colsum = colSums(lij.matrix)
+  mu.t = apply(lij.matrix, MARGIN = 2, function(x) dot(x, rv.norm) / sum(x))
+  for (j_percol in 1:3) {
+    sigma2.t[j_percol] = dot(lij.matrix[, j_percol], (rv.norm - mu.t[j_percol]) ^ 2) / lij.colsum[j_percol]
   }
-  sigma_=sqrt(sigma2_)
-  p_=am_sum/n
+  sigma.t = sqrt(sigma2.t)
+  p.t = lij.colsum / len_rv
 }
