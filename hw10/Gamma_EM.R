@@ -20,6 +20,7 @@ test_debug.f<-function() {
     likelihood.m = sapply(L, function(lambda) { dgamma(y, 0.5, 1 / (2 * lambda)) })
     likelihood.m=likelihood.m/rowSums(likelihood.m)
     L = apply(likelihood.m, MARGIN = 2, function(col) dot(col, y) / sum(col))
+    L=L/sum(L)
     if (sum(abs(L.old - L) / L.old) < tol) {
       break
     }
