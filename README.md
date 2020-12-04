@@ -10,6 +10,8 @@ QR分解(QR decomposition), 分别用了 Househoulder, Givens, CGS, MGS 方法�
 
 牛顿法(Newton method)
 
+Fisher信息量法(Fisher-Scoring method)
+
 ##### hw8, hw9
 优化问题(optimization problems)
 
