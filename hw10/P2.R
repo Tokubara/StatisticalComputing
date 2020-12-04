@@ -1,14 +1,15 @@
 library(pracma)
 
-gmm_norm_3 <- function(rv.norm, mu.t = c(0, 0, 0), sigma2.t = c(1, 1, 1), p.t = c(1, 1, 1) / 3, max_iter = 5000, tol = 1e-8) {
+gmm_norm_3 <- function(rv.norm, mu.t = c(0, 0, 0), sigma2.t = c(1, 1, 1), p.t = c(1, 1, 1) / 3, max_iter = 5000, tol = 1e-6) {
   # 之后计算需要用到的量
   len_rv = length(rv.norm)
   sigma.t = sqrt(sigma2.t)
   iter_counter = 0
-  while (TRUE) {
+  while (iter_counter < max_iter) {
     # 计算条件概率
-    lij.matrix = cbind(dnorm(rv.norm, mu.t[1], sigma.t[1]) * p.t[1], dnorm(rv.norm, mu.t[2], sigma.t[2]) * p.t[2], dnorm(rv.norm, mu.t[3], sigma.t[3]) * p.t[3]) # m表示是个矩阵
-    lij.matrix = t(apply(lij.matrix, MARGIN = 1, function(row) row / sum(row)))
+    mu.t.old=mu.t
+    lij.matrix = sapply(1:3, function(i) { dnorm(rv.norm, mu.t[i], sigma.t[i]) *p.t[i] }) # m表示是个矩阵
+    lij.matrix = lij.matrix/rowSums(lij.matrix)
     stopifnot("underflow" = !any(is.na(lij.matrix)), "underflow" = !any(is.nan(lij.matrix)))
     lij.colsum = colSums(lij.matrix)
     # mu.t.old = mu.t # 保存用于判停
@@ -21,14 +22,20 @@ gmm_norm_3 <- function(rv.norm, mu.t = c(0, 0, 0), sigma2.t = c(1, 1, 1), p.t = 
     sigma.t = sqrt(sigma2.t)
     # 更新p
     p.t = lij.colsum / len_rv
+    if(abs(sum(p.t)-1)>=tol) {
+      print(p.t)
+      stop("sum of p!=1")
+    }
     # 判停
     iter_counter = iter_counter + 1
+    print(mu.t)
     # print(iter_counter)
     # print(sum((mu.t.old - mu.t) ^ 2))
-    if (iter_counter > max_iter) {
-      return(list(mu = mu.t, sigma2 = sigma2.t, sigma = sigma.t, p = p.t, iter_num = iter_counter, mu_sse = sum((mu.t.old - mu.t) ^ 2)))
-    }
+    # if (sqrt(sum((mu.t.old - mu.t) ^ 2)) / sqrt(sum(mu.t.old^2))<tol) {
+    #   break
+    # }
   }
+  return(list(mu = mu.t, sigma2 = sigma2.t, sigma = sigma.t, p = p.t, iter_num = iter_counter))
 }
 
 # 设定真实参数
@@ -44,6 +51,3 @@ rv.latent = sample(x = 1:3, size = len_rv, prob = p.preset, replace = TRUE)
 rv.norm = rnorm(len_rv, mu.preset[rv.latent], sigma.preset[rv.latent])
 
 res = gmm_norm_3(rv.norm,c(2,2,2))
-
-fit = Mclust(rv.norm, G=3, model="V") 
-summary(fit)
