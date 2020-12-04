@@ -5,4 +5,4 @@ b = res$P %*% c(4, 4)
 x.p = forwardsolve(res$U, .t, upper.tri = TRUE)
 
 res = LU(A, FALSE) # 不选主元的情况
-# 我跟你说, 我觉得
+

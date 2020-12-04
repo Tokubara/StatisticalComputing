@@ -16,7 +16,7 @@ cut_n_parts <- function(x, part_num) {
   return(per_part)
 }
 # cut_n_parts(1:10, 3)
-cut_n_parts(1:2000, 4)
+# cut_n_parts(1:2000, 4)
 
 
 gmm_norm <- function(rv.norm, n, mu.t = NULL, sigma.t = NULL, p.t = NULL, max_iter = 5000, tol = 1e-6) {
@@ -61,15 +61,17 @@ gmm_norm <- function(rv.norm, n, mu.t = NULL, sigma.t = NULL, p.t = NULL, max_it
 
 
 # 设定真实参数
-len_rv = 2000
-mu.preset = c(1, 3, 7, 20)
-sigma2.preset = c(2, 1, 2, 4)
-sigma.preset = sqrt(sigma2.preset)
-p.preset = c(0.2, 0.3, 0.2, 0.3)
+test.gmm_norm <- function(len_rv, mu.preset, sigma2.preset, p.preset, max_iter=5000) {
+  # 生成数据点
+  stopifnot("sum of p not equals 1" = near(sum(p.preset), 1), length(mu.preset) == length(sigma2.preset), length(mu.preset) == length(p.preset))
+  set.seed(17)
+  n = length(mu.preset)
+  rv.latent = sample(x = 1:n, size = len_rv, prob = p.preset, replace = TRUE)
+  sigma.preset = sqrt(sigma2.preset)
+  rv.norm = rnorm(len_rv, mu.preset[rv.latent], sigma.preset)
+  res = gmm_norm(rv.norm, n = n,max_iter = max_iter)
+  return(res)
+}
 
-# 生成数据点
-set.seed(17)
-rv.latent = sample(x = 1:4, size = len_rv, prob = p.preset, replace = TRUE)
-rv.norm = rnorm(len_rv, mu.preset[rv.latent], sigma.preset[rv.latent])
+res = test.gmm_norm(10000, c(-1, 2, 4), c(1, 1, 1), c(0.2, 0.3, 0.5), max_iter=10000)
 
-res = gmm_norm(rv.norm, n = 4)

@@ -1,0 +1,176 @@
+---
+title: "lecture6 exercises"
+output:
+  pdf_document:
+    latex_engine: xelatex
+    extra_dependencies:
+      ctexcap: UTF8
+---
+
+##### ex1
+What is the population parameter?
+
+p
+
+What is the sample statistic?
+
+$\hat p$
+
+##### ex2
+
+The law school data set law in the bootstrap package contains average LSAT and average GPA for 15 law schools. This data set is a random sample from the universe of 82 law schools in law82.
+
+###### 1
+Estimate the correlation between LSAT and GPA scores, and compute the bootstrap estimate of the standard error of the sample correlation.
+
+```{r,include=FALSE}
+library(boot)
+library(bootstrap)
+```
+
+估计的相关系数为(完整的law82与sample)
+```{r}
+cor(law82$LSAT, law82$GPA)
+(law.sample_R=cor(law$LSAT, law$GPA))
+```
+
+bootstrap得到标准差
+```{r}
+law.batch_num<-2000 # 迭代次数
+law.sample_size<-nrow(law)
+law.R_batch<-numeric(law.batch_num)
+
+for(i in 1:law.batch_num) {
+  sample_per_iter=law[sample(law.sample_size, size=law.sample_size, replace=TRUE),]
+  law.R_batch[i]<-with(sample_per_iter, cor(LSAT, GPA))
+}
+
+my.law.boot_se=sd(law.R_batch)
+```
+
+```{r}
+my.law.boot_se
+```
+
+###### 2
+Use the boot function from package boot.
+
+
+```{r}
+law.boot_obj<-boot(law, function(data,index){cor(data[index,]$LSAT, data[index,]$GPA)}, R=2000)
+```
+
+```{r}
+law.boot_obj$t0
+sd(law.boot_obj$t)
+```
+对标准差得到了近似的结果(随机不可能相同).
+
+##### ex3
+###### 1
+Compute the bootstrap estimation of bias for the law school sample correlation problem.
+
+```{r}
+mean(law.R_batch)-law.sample_R
+```
+
+###### 2
+The patch (bootstrap) data  contains measurements of a certain hormone in the bloodstream of eight subjects after wearing a medical patch.
+
+```{r}
+patch.boot_obj<-boot(patch, function(data,index){mean(data[index,]$y)/mean(data[index,]$z)}, R=2000)
+```
+
+```{r}
+patch.boot_obj
+```
+
+```{r}
+mean(patch.boot_obj$t)-patch.boot_obj$t0
+```
+可以看到与summary给出了相同的结果
+
+##### ex4
+###### 1
+Compute the confidence intervals for the patch ratio statistic.
+```{r}
+# norm
+alpha=0.05
+patch.se=sd(patch.boot_obj$t)
+radius.norm=qnorm(0.025)*patch.se
+print(c(patch.boot_obj$t0+radius.norm, patch.boot_obj$t0-radius.norm))
+# basic
+print(c(2*patch.boot_obj$t0-quantile(patch.boot_obj$t, 1-alpha/2), 2*patch.boot_obj$t0-quantile(patch.boot_obj$t, alpha/2)))
+# perc
+print(c(quantile(patch.boot_obj$t,alpha/2),quantile(patch.boot_obj$t,1-alpha/2)))
+```
+计算的是置信水平为0.05的情况.
+
+###### 2
+Compute the confidence intervals using the boot.ci function.
+```{r}
+(patch.boot_ci=boot.ci(patch.boot_obj,type=c("norm","basic","perc")))
+```
+
+可以看到norm与(1)相同, (2)(3)有微小的差别, 猜测是boot.ci的实现中, 对quantile做了平滑化.
+
+##### ex5
+Use linear regression model to predict cat heart weights with cat body weights. Compute the confidence intervals of the regression coefficients with bootstrap resampling.
+```{r,message=FALSE}
+library(MASS)
+data(cats)
+library(dplyr)
+```
+
+分别考虑male与female, 都是0.95的置信水平.
+```{r}
+female.cats=cats%>%filter(Sex=="F")
+male.cats=cats%>%filter(Sex=="M")
+```
+
+```{r}
+R.f<-function(data,index,k) {
+  # k=1, 截距, k=2, 斜率
+  fit<-lm(Hwt~Bwt, data[index,])
+  return(fit$coefficients[k])
+}
+female.b0.ci<-boot(female.cats,statistic = R.f,R=2000,k=1)%>%boot.ci(type=c("norm","basic","perc"))
+female.b1.ci<-boot(female.cats,statistic = R.f,R=2000,k=2)%>%boot.ci(type=c("norm","basic","perc"))
+```
+
+```{r}
+female.b0.ci
+female.b1.ci
+```
+
+我们看看lm给出的区间估计
+```{r}
+female.fit<-lm(Hwt~Bwt,female.cats)
+```
+
+```{r}
+confint(female.fit)
+```
+
+对male进行类似的操作.
+```{r}
+male.b0.ci<-boot(male.cats,statistic = R.f,R=2000,k=1)%>%boot.ci(type=c("norm","basic","perc"))
+male.b1.ci<-boot(male.cats,statistic = R.f,R=2000,k=2)%>%boot.ci(type=c("norm","basic","perc"))
+```
+```{r}
+male.b0.ci
+male.b1.ci
+```
+
+```{r}
+male.fit<-lm(Hwt~Bwt,male.cats)
+confint(male.fit)
+```
+看到与female的结果有很大差别, b1明显更大, 由于它的区间宽度明显小很多, 猜想应该male的样本量是要大于female, 的确如此.
+
+```{r}
+nrow(male.cats)
+nrow(female.cats)
+```
+
+

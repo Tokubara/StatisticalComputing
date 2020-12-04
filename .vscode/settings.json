@@ -1,0 +1,9 @@
+{
+  "editor.fontSize": 20,
+  "files.associations": {
+    "*.rmd": "markdown",
+    "vector": "cpp",
+    "iostream": "cpp",
+    "string": "cpp"
+  },
+}

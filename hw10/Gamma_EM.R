@@ -2,7 +2,7 @@
 
 # 造数据
 set.seed(543)
-m <- 2000
+m <- 20000
 lambda <- c(.6, .25, .15) #rate is 1/(2lambda)
 lam <- sample(lambda, size = 2000, replace = TRUE)
 y <- rgamma(m, shape = .5, rate = 1 / (2 * lam))
